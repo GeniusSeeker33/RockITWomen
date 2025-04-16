@@ -7,7 +7,9 @@ export default defineConfig({
     host: '0.0.0.0',
     port: 5173,
     strictPort: true,
-    allowedHosts: 'all', // ✅ This allows *any* Gitpod subdomain
-    origin: 'https://5173-fatemeghala-reacttailwi-54w5kih0j1c.ws-us118.gitpod.io'
+    origin: 'https://5173-geniusseeke-rockitwomen-rktazllxb34.ws-us118.gitpod.io',
+    allowedHosts: 'all',
   },
 });
+
+
