@@ -8,7 +8,7 @@ const METADATA_URIS = {
   connect: 'ipfs://QmNySNsiKcqKx7aeJa2pNTRURVLnX7WwijHqigjfJ3vC8Q'
 };
 
-const TOKEN_ID = '0.0.9099972'; // RockIT Women 2025 Token ID
+const TOKEN_ID = '0.0.9099972';
 
 export default function RockITWomenMint() {
   const [badgeType, setBadgeType] = useState('empower');
@@ -22,29 +22,26 @@ export default function RockITWomenMint() {
 
       const hashconnect = new HashConnect();
 
-      const appMetadata = {
+      await hashconnect.init({
         name: 'RockIT Women Minting App',
         description: 'Official badge minting for RockIT Women 2025',
-        icon: 'https://rockitwomen.com/logo.png'
-      };
+        network: 'mainnet',
+        multiAccount: false,
+        debug: true,
+        relay: {
+          url: 'wss://relay.wallet.hashpack.app',
+          key: ''
+        }
+      });
 
-      const initData = await hashconnect.init(appMetadata, 'mainnet', false);
-      await hashconnect.connectToLocalWallet();
+      const pairingData = await hashconnect.connect();
 
-      // Wait briefly for wallet to populate pairing data
-      await new Promise((resolve) => setTimeout(resolve, 1000));
+      const provider = hashconnect.getProvider(
+        'mainnet',
+        pairingData.topic,
+        pairingData.accountIds[0]
+      );
 
-      const pairingData = {
-        topic: initData.topic,
-        accountIds: initData.pairedAccounts
-      };
-
-      if (!pairingData.accountIds || !pairingData.accountIds[0]) {
-        setStatus("❌ Wallet pairing failed or no account returned.");
-        return;
-      }
-
-      const provider = hashconnect.getProvider('mainnet', pairingData.topic, pairingData.accountIds[0]);
       const signer = hashconnect.getSigner(provider);
 
       setStatus('Minting NFT...');
@@ -92,6 +89,7 @@ export default function RockITWomenMint() {
     </div>
   );
 }
+
 
 
 
