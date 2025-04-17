@@ -29,14 +29,24 @@ export default function RockITWomenMint() {
       };
 
       const initData = await hashconnect.init(appMetadata, 'mainnet', false);
-
-      // Manually connect to the local wallet to ensure the relay is initialized
       await hashconnect.connectToLocalWallet();
+
+      // Wait for wallet pairing event
+      const pairingEvent = await new Promise((resolve) => {
+        hashconnect.pairingEvent.once("wallet-paired", (event) => {
+          resolve(event);
+        });
+      });
 
       const pairingData = {
         topic: initData.topic,
-        accountIds: initData.pairedAccounts
+        accountIds: pairingEvent.data.accountIds
       };
+
+      if (!pairingData.accountIds || !pairingData.accountIds[0]) {
+        setStatus("❌ Wallet pairing failed or no account returned.");
+        return;
+      }
 
       const provider = hashconnect.getProvider('mainnet', pairingData.topic, pairingData.accountIds[0]);
       const signer = hashconnect.getSigner(provider);
@@ -49,7 +59,7 @@ export default function RockITWomenMint() {
         maxTransactionFee: 200000000
       });
 
-      const receipt = await transaction.execute();
+      const receipt = await transaction.getReceipt(provider);
       setStatus(`✅ NFT Minted! Status: ${receipt.status.toString()}`);
     } catch (err) {
       console.error(err);
@@ -86,6 +96,7 @@ export default function RockITWomenMint() {
     </div>
   );
 }
+
 
 
 
