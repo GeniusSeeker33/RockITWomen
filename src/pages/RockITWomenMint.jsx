@@ -31,16 +31,12 @@ export default function RockITWomenMint() {
       const initData = await hashconnect.init(appMetadata, 'mainnet', false);
       await hashconnect.connectToLocalWallet();
 
-      // Wait for wallet pairing event
-      const pairingEvent = await new Promise((resolve) => {
-        hashconnect.pairingEvent.once("wallet-paired", (event) => {
-          resolve(event);
-        });
-      });
+      // Wait briefly for wallet to populate pairing data
+      await new Promise((resolve) => setTimeout(resolve, 1000));
 
       const pairingData = {
         topic: initData.topic,
-        accountIds: pairingEvent.data.accountIds
+        accountIds: initData.pairedAccounts
       };
 
       if (!pairingData.accountIds || !pairingData.accountIds[0]) {
