@@ -1,4 +1,3 @@
-// RockITWomenMint.jsx
 import React, { useState } from 'react';
 import { HashConnect } from 'hashconnect';
 
@@ -8,7 +7,7 @@ const METADATA_URIS = {
   connect: 'ipfs://QmNySNsiKcqKx7aeJa2pNTRURVLnX7WwijHqigjfJ3vC8Q'
 };
 
-const TOKEN_ID = '0.0.9099972'; // Mainnet Token ID for RockIT Women 2025
+const TOKEN_ID = '0.0.9099972';
 
 export default function RockITWomenMint() {
   const [badgeType, setBadgeType] = useState('empower');
@@ -21,19 +20,13 @@ export default function RockITWomenMint() {
       setLoading(true);
 
       const hashconnect = new HashConnect();
-
-      await hashconnect.init({
+      const appMetadata = {
         name: 'RockIT Women Minting App',
         description: 'Official badge minting for RockIT Women 2025',
-        network: 'mainnet',
-        multiAccount: false,
-        debug: true,
-        relay: {
-          url: 'wss://relay.wallet.hashpack.app',
-          key: ''
-        }
-      });
+        icon: 'https://rockitwomen.com/logo.png'
+      };
 
+      const initData = await hashconnect.init(appMetadata, 'mainnet', false);
       const pairing = await hashconnect.connectToLocalWallet();
       const provider = hashconnect.getProvider('mainnet', pairing.topic, pairing.accountIds[0]);
       const signer = hashconnect.getSigner(provider);
@@ -83,4 +76,5 @@ export default function RockITWomenMint() {
     </div>
   );
 }
+
 
