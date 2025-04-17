@@ -13,8 +13,12 @@ build/
 
 # Environment
 .env
+.env.local
+.env.*.local
+
 
 # OS / Editor junk
 .DS_Store
 .vscode/
 .idea/
+
