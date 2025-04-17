@@ -26,9 +26,14 @@ export default function RockITWomenMint() {
         icon: 'https://rockitwomen.com/logo.png'
       };
 
-      const initData = await hashconnect.init(appMetadata, 'mainnet', false);
-      const pairing = await hashconnect.connectToLocalWallet();
-      const provider = hashconnect.getProvider('mainnet', pairing.topic, pairing.accountIds[0]);
+      const state = await hashconnect.connect();
+
+      const pairingData = {
+        topic: state.topic,
+        accountIds: state.pairedAccounts
+      };
+
+      const provider = hashconnect.getProvider('mainnet', pairingData.topic, pairingData.accountIds[0]);
       const signer = hashconnect.getSigner(provider);
 
       setStatus('Minting NFT...');
