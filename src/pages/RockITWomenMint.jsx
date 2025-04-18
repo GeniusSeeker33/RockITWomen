@@ -1,4 +1,4 @@
-// RockITWomenMint.jsx — SSR-safe with HashPack extension + event-driven pairing
+// RockITWomenMint.jsx — FINAL stable version for HashPack extension
 import React, { useState, useEffect, useRef } from 'react';
 import { HashConnect } from 'hashconnect';
 
@@ -14,31 +14,32 @@ export default function RockITWomenMint() {
   const [badgeType, setBadgeType] = useState('empower');
   const [status, setStatus] = useState('');
   const [loading, setLoading] = useState(false);
-  const [accountId, setAccountId] = useState(null);
-  const [topic, setTopic] = useState(null);
   const hashconnectRef = useRef(null);
+  const pairingDataRef = useRef({ topic: null, accountId: null });
 
   useEffect(() => {
     if (typeof window !== 'undefined') {
       (async () => {
-        const hashconnect = new HashConnect();
-        const appMetadata = {
-          name: 'RockIT Women Minting App',
-          description: 'Official badge minting for RockIT Women 2025',
-          icon: 'https://rockitwomen.com/logo.png'
-        };
-
         try {
+          const hashconnect = new HashConnect();
+          const appMetadata = {
+            name: 'RockIT Women Minting App',
+            description: 'Official badge minting for RockIT Women 2025',
+            icon: 'https://rockitwomen.com/logo.png'
+          };
+
           const initData = await hashconnect.init(appMetadata, 'mainnet', false);
           await hashconnect.connectToLocalWallet();
 
-          hashconnect.pairingEvent.once('wallet-paired', (data) => {
-            const paired = data.data;
-            if (paired && paired.accountIds && paired.accountIds[0]) {
-              setAccountId(paired.accountIds[0]);
-              setTopic(paired.topic);
-            }
-          });
+          // Wait 2 seconds for wallet to populate pairedAccounts
+          await new Promise((resolve) => setTimeout(resolve, 2000));
+
+          if (initData.pairedAccounts.length > 0) {
+            pairingDataRef.current = {
+              topic: initData.topic,
+              accountId: initData.pairedAccounts[0]
+            };
+          }
 
           hashconnectRef.current = hashconnect;
         } catch (err) {
@@ -50,13 +51,14 @@ export default function RockITWomenMint() {
 
   const mintBadge = async () => {
     try {
-      setStatus('Preparing to mint...');
+      setStatus('Connecting to wallet...');
       setLoading(true);
 
       const hashconnect = hashconnectRef.current;
+      const { topic, accountId } = pairingDataRef.current;
 
-      if (!hashconnect || !accountId || !topic) {
-        setStatus('❌ Wallet not paired yet. Please connect your wallet.');
+      if (!hashconnect || !topic || !accountId) {
+        setStatus('❌ Wallet not connected. Please reload and approve connection.');
         return;
       }
 
