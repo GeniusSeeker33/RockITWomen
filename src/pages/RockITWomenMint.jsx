@@ -1,4 +1,4 @@
-// RockITWomenMint.jsx — FINAL stable version for HashPack extension
+// RockITWomenMint.jsx — FINAL with pairing fallback from HashConnect session
 import React, { useState, useEffect, useRef } from 'react';
 import { HashConnect } from 'hashconnect';
 
@@ -31,14 +31,18 @@ export default function RockITWomenMint() {
           const initData = await hashconnect.init(appMetadata, 'mainnet', false);
           await hashconnect.connectToLocalWallet();
 
-          // Wait 2 seconds for wallet to populate pairedAccounts
+          // Wait for wallet to initialize pairing info
           await new Promise((resolve) => setTimeout(resolve, 2000));
 
-          if (initData.pairedAccounts.length > 0) {
-            pairingDataRef.current = {
-              topic: initData.topic,
-              accountId: initData.pairedAccounts[0]
-            };
+          // Attempt to retrieve latest pairing from hashconnect.pairingData
+          if (hashconnect.pairingData && hashconnect.pairingData.length > 0) {
+            const pairing = hashconnect.pairingData[0];
+            if (pairing.accountIds && pairing.accountIds.length > 0) {
+              pairingDataRef.current = {
+                topic: pairing.topic,
+                accountId: pairing.accountIds[0]
+              };
+            }
           }
 
           hashconnectRef.current = hashconnect;
@@ -110,6 +114,7 @@ export default function RockITWomenMint() {
     </div>
   );
 }
+
 
 
 
