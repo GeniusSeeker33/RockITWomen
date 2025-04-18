@@ -1,4 +1,4 @@
-// RockITWomenMint.jsx
+// RockITWomenMint.jsx — HashConnect v0.2.9 with HashPack Extension
 import React, { useState } from 'react';
 import { HashConnect } from 'hashconnect';
 
@@ -17,31 +17,37 @@ export default function RockITWomenMint() {
 
   const mintBadge = async () => {
     try {
-      setStatus('Connecting to wallet...');
+      setStatus('Connecting to HashPack...');
       setLoading(true);
 
       const hashconnect = new HashConnect();
 
-      await hashconnect.init({
+      const appMetadata = {
         name: 'RockIT Women Minting App',
         description: 'Official badge minting for RockIT Women 2025',
-        network: 'mainnet',
-        multiAccount: false,
-        debug: true,
-        relay: {
-          url: 'wss://relay.wallet.hashpack.app',
-          key: ''
-        }
-      });
+        icon: 'https://rockitwomen.com/logo.png'
+      };
 
-      const pairingData = await hashconnect.connect();
+      // Initialize HashConnect
+      const initData = await hashconnect.init(appMetadata, 'mainnet', false);
 
-      const provider = hashconnect.getProvider(
-        'mainnet',
-        pairingData.topic,
-        pairingData.accountIds[0]
-      );
+      // Connect to the HashPack extension (no QR, no relay)
+      await hashconnect.connectToLocalWallet();
 
+      // Wait briefly to allow pairing data to populate
+      await new Promise((resolve) => setTimeout(resolve, 1000));
+
+      const pairingData = {
+        topic: initData.topic,
+        accountIds: initData.pairedAccounts
+      };
+
+      if (!pairingData.accountIds || !pairingData.accountIds[0]) {
+        setStatus('❌ Wallet pairing failed or no account returned.');
+        return;
+      }
+
+      const provider = hashconnect.getProvider('mainnet', pairingData.topic, pairingData.accountIds[0]);
       const signer = hashconnect.getSigner(provider);
 
       setStatus('Minting NFT...');
@@ -89,6 +95,7 @@ export default function RockITWomenMint() {
     </div>
   );
 }
+
 
 
 

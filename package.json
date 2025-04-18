@@ -12,7 +12,7 @@
   "dependencies": {
     "@aws-sdk/client-s3": "^3.787.0",
     "axios": "^1.8.4",
-    "hashconnect": "^3.0.13",
+    "hashconnect": "^0.2.9",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
     "react-router-dom": "^7.5.1"
