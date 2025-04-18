@@ -1,5 +1,5 @@
-// RockITWomenMint.jsx — HashConnect v0.2.9 with HashPack Extension
-import React, { useState } from 'react';
+// RockITWomenMint.jsx — HashPack Extension (SSR-safe)
+import React, { useState, useEffect, useRef } from 'react';
 import { HashConnect } from 'hashconnect';
 
 const METADATA_URIS = {
@@ -14,27 +14,46 @@ export default function RockITWomenMint() {
   const [badgeType, setBadgeType] = useState('empower');
   const [status, setStatus] = useState('');
   const [loading, setLoading] = useState(false);
+  const hashconnectRef = useRef(null);
+  const initDataRef = useRef(null);
+
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      (async () => {
+        const hashconnect = new HashConnect();
+        const appMetadata = {
+          name: 'RockIT Women Minting App',
+          description: 'Official badge minting for RockIT Women 2025',
+          icon: 'https://rockitwomen.com/logo.png'
+        };
+
+        try {
+          const initData = await hashconnect.init(appMetadata, 'mainnet', false);
+          await hashconnect.connectToLocalWallet();
+
+          hashconnectRef.current = hashconnect;
+          initDataRef.current = initData;
+        } catch (err) {
+          console.error('HashConnect init error:', err);
+        }
+      })();
+    }
+  }, []);
 
   const mintBadge = async () => {
     try {
       setStatus('Connecting to HashPack...');
       setLoading(true);
 
-      const hashconnect = new HashConnect();
+      const hashconnect = hashconnectRef.current;
+      const initData = initDataRef.current;
 
-      const appMetadata = {
-        name: 'RockIT Women Minting App',
-        description: 'Official badge minting for RockIT Women 2025',
-        icon: 'https://rockitwomen.com/logo.png'
-      };
+      if (!hashconnect || !initData) {
+        setStatus('❌ Wallet not initialized. Please refresh.');
+        return;
+      }
 
-      // Initialize HashConnect
-      const initData = await hashconnect.init(appMetadata, 'mainnet', false);
-
-      // Connect to the HashPack extension (no QR, no relay)
-      await hashconnect.connectToLocalWallet();
-
-      // Wait briefly to allow pairing data to populate
+      // Wait briefly for wallet pairing
       await new Promise((resolve) => setTimeout(resolve, 1000));
 
       const pairingData = {
@@ -95,6 +114,7 @@ export default function RockITWomenMint() {
     </div>
   );
 }
+
 
 
 
