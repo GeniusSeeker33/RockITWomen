@@ -1,4 +1,4 @@
-// RockITWomenMint.jsx — HashPack Extension (SSR-safe)
+// RockITWomenMint.jsx — SSR-safe with HashPack extension + event-driven pairing
 import React, { useState, useEffect, useRef } from 'react';
 import { HashConnect } from 'hashconnect';
 
@@ -14,8 +14,9 @@ export default function RockITWomenMint() {
   const [badgeType, setBadgeType] = useState('empower');
   const [status, setStatus] = useState('');
   const [loading, setLoading] = useState(false);
+  const [accountId, setAccountId] = useState(null);
+  const [topic, setTopic] = useState(null);
   const hashconnectRef = useRef(null);
-  const initDataRef = useRef(null);
 
   useEffect(() => {
     if (typeof window !== 'undefined') {
@@ -31,8 +32,15 @@ export default function RockITWomenMint() {
           const initData = await hashconnect.init(appMetadata, 'mainnet', false);
           await hashconnect.connectToLocalWallet();
 
+          hashconnect.pairingEvent.once('wallet-paired', (data) => {
+            const paired = data.data;
+            if (paired && paired.accountIds && paired.accountIds[0]) {
+              setAccountId(paired.accountIds[0]);
+              setTopic(paired.topic);
+            }
+          });
+
           hashconnectRef.current = hashconnect;
-          initDataRef.current = initData;
         } catch (err) {
           console.error('HashConnect init error:', err);
         }
@@ -42,31 +50,17 @@ export default function RockITWomenMint() {
 
   const mintBadge = async () => {
     try {
-      setStatus('Connecting to HashPack...');
+      setStatus('Preparing to mint...');
       setLoading(true);
 
       const hashconnect = hashconnectRef.current;
-      const initData = initDataRef.current;
 
-      if (!hashconnect || !initData) {
-        setStatus('❌ Wallet not initialized. Please refresh.');
+      if (!hashconnect || !accountId || !topic) {
+        setStatus('❌ Wallet not paired yet. Please connect your wallet.');
         return;
       }
 
-      // Wait briefly for wallet pairing
-      await new Promise((resolve) => setTimeout(resolve, 1000));
-
-      const pairingData = {
-        topic: initData.topic,
-        accountIds: initData.pairedAccounts
-      };
-
-      if (!pairingData.accountIds || !pairingData.accountIds[0]) {
-        setStatus('❌ Wallet pairing failed or no account returned.');
-        return;
-      }
-
-      const provider = hashconnect.getProvider('mainnet', pairingData.topic, pairingData.accountIds[0]);
+      const provider = hashconnect.getProvider('mainnet', topic, accountId);
       const signer = hashconnect.getSigner(provider);
 
       setStatus('Minting NFT...');
