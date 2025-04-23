@@ -2,8 +2,6 @@
 
 import React, { useState } from 'react';
 
-import React, { useState } from 'react';
-
 const questions = [
 {
     question: 'If you could have any superpower at work, what would it be?',
